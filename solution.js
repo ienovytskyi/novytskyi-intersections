@@ -25,6 +25,7 @@ var examples = {
         { x: 90,  y: 90  },
         { x: 30,  y: 210 }
     ]
+
 };
 
 //intersection points array
@@ -101,19 +102,16 @@ function intersection (a1,b1,c2,d2,p) {
     else {
         var k2=(d2.y-c2.y)/(d2.x-c2.x);   
         var n2=(c2.y*d2.x-d2.y*c2.x)/(d2.x-c2.x);
-    }
-    
+    } 
 //parallel lines
     if (k1==k2 && n1!==n2) {
         return 0;
     }
-    
 //parallel vertical lines
     if (k1==Infinity && k2==Infinity && a1.x!=c2.x) {
         return 0;
     }
-  
-//imposed vertical lines
+//superposed vertical lines
     if (k1==Infinity && k2==Infinity && a1.x==c2.x) {
         if (Math.max(a1.y,b1.y)<Math.min(c2.y,d2.y) || Math.max(c2.y,d2.y)<Math.min(a1.y,b1.y)) {return 0;}
         if (Math.max(a1.y,b1.y)==Math.min(c2.y,d2.y)) {addInterPoints(a1.x,Math.max(a1.y,b1.y),p,a1,b1,c2,d2);}
@@ -123,8 +121,7 @@ function intersection (a1,b1,c2,d2,p) {
         if (Math.max(a1.y,b1.y)<=Math.max(c2.y,d2.y)) {addInterPoints(a1.x,Math.max(a1.y,b1.y),p,a1,b1,c2,d2);}
         if (Math.max(a1.y,b1.y)>Math.max(c2.y,d2.y)) {addInterPoints(a1.x,Math.max(c2.y,d2.y),p,a1,b1,c2,d2);}
     }
-
-//imposed non vertical lines 
+//superposed non vertical lines 
    if (k1==k2 && n1==n2 && k1!=Infinity && k2!=Infinity) {
         if (p==3 || p==4) {return 10;}
         else {
@@ -137,8 +134,7 @@ function intersection (a1,b1,c2,d2,p) {
                 else {addInterPoints(d2.x,d2.y,p,a1,b1,c2,d2,p);}
         }
     } 
-    
-//lines intersect
+//lines intersect. in any case we check if point is appropriative (belongs to line segments) and if it is push it to the array
     if (p!=3 && p!=4) {
         
     if (k1!==k2) {
@@ -184,20 +180,23 @@ function intersection (a1,b1,c2,d2,p) {
     
     } //end if (p!=3)
 
-//build line equation which passes one point with default angular coefficient set to 0 (can be changed in line k1-=0.1;) and look for intersection points. this point cant be vertex
+//build line equation which passes one point with default angular coefficient set to 0 (can be changed in line k1-=0.1;) and look for intersection points. this point cant be vertex. line cant be vertical, because we dont set infinity angular coefficient
     if (p==3 || p==4) {
+//first line not horizontal, second horizontal
         if (c2.y==d2.y && k1!=0) {
             xRes=(a1.y-k1*a1.x-n2)/(k2-k1);
             if (xRes>c2.x && xRes<d2.x && xRes>=a1.x) {return 30;}
             if (xRes==c2.x || xRes==d2.x) {return 20;}
             if (xRes<c2.x || xRes>d2.x || xRes<=a1.x) {return 10;}
-        } //1 not hor 2 hor
-        else if (c2.x==d2.x) {  //k2=inf
+        }
+//second line vertical, first line any
+        else if (c2.x==d2.x) {
             if (k1==0) {yRes=a1.y;} if (k1!=0) {yRes=k1*(c2.x-a1.x)+a1.y;}
             if (yRes>Math.min(c2.y,d2.y) && yRes<Math.max(c2.y,d2.y) && c2.x>=a1.x) {return 30;}        //WARNING to use >=
             if (yRes==Math.min(c2.y,d2.y) || yRes==Math.max(c2.y,d2.y)) {return 20;}
             if (yRes<Math.min(c2.y,d2.y) || yRes>Math.max(c2.y,d2.y) || c2.x<=a1.x) {return 10;}
-        }   //1 any 2 vert
+        }
+//other
         else {                  //k2!=inf && k1!=k2
             xRes=(a1.y-k1*a1.x-n2)/(k2-k1);
             yRes=k1*((a1.y-k1*a1.x-n2)/(k2-k1))+a1.y;
@@ -208,15 +207,16 @@ function intersection (a1,b1,c2,d2,p) {
     }
 }   //function end
 
-//add found point to array. also we add all the points which can be directly connected to this one (build smth like a route map to see which next point we can get directly from this one)
+//adds found point to array. also we add vertexes of line segments, which intersection creates this point (build smth like a route map to see which next point we can get directly from this one). a1,b1-first linesegment; c2,d2-second line segment
 function addInterPoints (xx,yy,p,a1,b1,c2,d2) {
     if (p==0) {addPoints(interPoints,xx,yy,a1,b1,c2,d2);}
     if (p==1) {addPoints(selfInterPointsF,xx,yy,a1,b1,c2,d2);}
     if (p==2) {addPoints(selfInterPointsS,xx,yy,a1,b1,c2,d2);}
 }
 
+//adds point with its "routes" to particular array
 function addPoints (a,xx,yy,a1,b1,c2,d2) {
-//modify existent point to add new "routes"
+//modify existent point to add new "routes". routes cant repeat
     if (a.length!=0) {
         for (var i=0; i<a.length; i++) {
             if (a[i].x==xx && a[i].y==yy) {
@@ -228,7 +228,7 @@ function addPoints (a,xx,yy,a1,b1,c2,d2) {
             }
         }
     }
-//add new point
+//add new point with routes
         a[a.length]={x: xx, y: yy, route: []};
         if ((a1.x!=xx || a1.y!=yy) && a1!=0) {a[a.length-1]["route"][a[a.length-1]["route"].length]={x: a1.x, y: a1.y};}
         if ((b1.x!=xx || b1.y!=yy) && b1!=0) {a[a.length-1]["route"][a[a.length-1]["route"].length]={x: b1.x, y: b1.y};}
@@ -250,14 +250,16 @@ function check (a,b) {
 //------------------------------------------------------------
 //second block
 
-//correct our routes
+//correct our routes. we leave only that routes which we can get directly from point (the nearest suitable point). we always check if the line segment current_point-suitable_route completely belongs to the intesection polygon
 function checkRoute (point,route) {
-    var temp1=0; 
-    var temp2=0;
-    var temp4 = new Array();
-    var temp=0; 
+    var temp1=0;                //just temp variable
+    var temp2=0;                //just temp variable
+    var temp4 = new Array();    //just temp array
+    var temp=0;                 //just temp variable
     for (var i=0; i<interPoints.length; i++) {
+//if suitable route is line segment vertex
         if (route.x==interPoints[i].x && route.y==interPoints[i].y) {temp1=1; temp=interPoints[i];}
+//if there is other suitable point between our current point and the route
         if (point.x==route.x && (interPoints[i].x==point.x && interPoints[i].y>Math.min(point.y,route.y) && interPoints[i].y<Math.max(point.y,route.y))) {
             temp2=1; 
             temp4[temp4.length]=interPoints[i];
@@ -271,6 +273,7 @@ function checkRoute (point,route) {
             temp4[temp4.length]=interPoints[i];
         }
     }
+//set the nearest sutable point as new route
     if (temp2!=0) {
         temp=temp4[0];
     //choose nearest point
@@ -278,25 +281,28 @@ function checkRoute (point,route) {
             if (Math.abs(point.x-temp4[i].x)<=Math.abs(point.x-temp.x) && Math.abs(point.y-temp4[i].y)<=Math.abs(point.y-temp.y)) {temp=temp4[i];}
         }
     }
-    if (temp1==0 && temp2==0) {return 100;} //this route is bad. need new route
+    if (temp1==0 && temp2==0) {return 100;} //this route is bad. delete it and find new
     if (temp1==1 || temp2==1) {
         if (checkLineSegment(point,temp,examples["first"],examples["second"])==30) {return temp;}
         else {return 100;}
     }   
 }
 
+//if the line segment current_point-suitable_route completely belongs to the intesection polygon new route can be set
 function checkLineSegment (point,route,first,second) {
         if (checkLineSegmentFS(point,route,first)==1 || checkLineSegmentFS(point,route,second)==1) {return 30;}
         if (checkLineSegmentFS(point,route,first)!=1 && checkLineSegmentFS(point,route,second)!=1) {return 10;}
 }
 
+//check if the line segment current_point-suitable_route completely belongs to the intesection polygon. if the middle of the line segment belongs, then the whole line segment belongs to polygon
 function checkLineSegmentFS (point,route,firstSecond) {
-        //for mid line segment point to check
+//if we identified that point belongs to the first polygon by default, check if it belongs to the second one. and vice versa.
         if (firstSecond==examples["first"]) {var mlsp=examples["second"];}
         if (firstSecond==examples["second"]) {var mlsp=examples["first"];}
         for (var i=0; i<firstSecond.length; i++) {
             var a1=firstSecond[i];
             var b1=firstSecond[(i+1)%(firstSecond.length)];
+//superposed vertical line segments
             if ( point.x==route.x && point.x==a1.x && point.x==b1.x && (Math.min(point.y,route.y)>=Math.min(a1.y,b1.y) && Math.max(point.y,route.y)<=Math.max(a1.y,b1.y)) ) {
                 for (var j=0; j<mlsp.length; j++) {
                         var a2=mlsp[j];
@@ -305,6 +311,7 @@ function checkLineSegmentFS (point,route,firstSecond) {
                 }
                 if ( (runPoints([{ x: point.x, y: Math.min(point.y,route.y)+(Math.max(point.y,route.y)-Math.min(point.y,route.y))/2 }],mlsp,4))==1 ) {return 1;}
             }
+//superposed horizontal line segments
             else if ( point.y==route.y && point.y==a1.y && point.y==b1.y && (Math.min(point.x,route.x)>=Math.min(a1.x,b1.x) && Math.max(point.x,route.x)<=Math.max(a1.x,b1.x)) ) {
                 for (var j=0; j<mlsp.length; j++) {
                         var a2=mlsp[j];
@@ -313,6 +320,7 @@ function checkLineSegmentFS (point,route,firstSecond) {
                 }
                 if ((runPoints([{ x: Math.min(point.x,route.x)+(Math.max(point.x,route.x)-Math.min(point.x,route.x))/2, y: point.y }],mlsp,4))==1) {return 1;}
             }
+//other
             else if ((point.x!=route.x && point.y!=route.y) && (point.x-a1.x)/(b1.x-a1.x)==(point.y-a1.y)/(b1.y-a1.y) && (route.x-a1.x)/(b1.x-a1.x)==(route.y-a1.y)/(b1.y-a1.y) ) {
                 for (var j=0; j<mlsp.length; j++) {
                         var a2=mlsp[j];
@@ -325,12 +333,15 @@ function checkLineSegmentFS (point,route,firstSecond) {
         return 0;
 }
 
+//launch previous functions. route can stay unchanged, deleted or replaced on the correct one
 function makeGoodRoutes () {
     for (var n=0; n<interPoints.length; n++) {
         for (var m=0; m<interPoints[n]["route"].length; m++) {
             var routeToMod=checkRoute(interPoints[n],interPoints[n]["route"][m]);
+//delete bad route
             if (routeToMod==100) {interPoints[n]["route"].splice(m,1); m--;}
             else {
+//correct some existent route
                 interPoints[n]["route"][m].x=routeToMod.x; 
                 interPoints[n]["route"][m].y=routeToMod.y;
             }
@@ -343,16 +354,20 @@ function makeGoodRoutes () {
 //third block
 
 //take first point from intesection array. take first route. these are first and second points of the result array. then we look for available route in second point. choose the first one available. this is the third point. and so on till available routes end. if there are available points in intersection array, we create new result array and repeat 
-function intersect () {
-    runPoints(examples["first"],examples["second"],0);
-    runPoints(examples["first"],examples["first"],1);
-    runPoints(examples["second"],examples["second"],2);
-    runPoints(examples["first"],examples["second"],3);
-    runPoints(examples["second"],examples["first"],3);
+function intersect (first,second) {
+//run previous code
+    runPoints(first,second,0);
+    runPoints(first,first,1);
+    runPoints(second,second,2);
+    runPoints(first,second,3);
+    runPoints(second,first,3);
     makeGoodRoutes();
+//used routes array
     var markers = new Array();
     if (interPoints.length==0) {return resArr;}
+//push first and second result points
     helpMeToBuildResArr(0,markers);
+//repeat for all intersection array
         step: for (var i=0; i<interPoints.length; i++) {
             for (var j=0; j<markers.length; j++) {
                 if (interPoints[i].x==markers[j].x && interPoints[i].y==markers[j].y) {
@@ -361,6 +376,7 @@ function intersect () {
             }
                 helpMeToBuildResArr(i,markers);
         }
+//if there is less than 3 points in the result array, delete it. it is case of vertexes or sides superposition
         for (var l=0; l<resArr.length; l++) {
             if (resArr[l].length<2) {
                 resArr.splice(l,1); 
@@ -370,18 +386,25 @@ function intersect () {
 return resArr;
 }
 
+//find and push points
 function helpMeToBuildResArr (i,markers) {
+//first point in new result array
     var first=0;
+//next point
     var next=0;
     resArr[resArr.length]=new Array();
+//first available point
     first={x: interPoints[i].x, y: interPoints[i].y};
     resArr[resArr.length-1][resArr[resArr.length-1].length]=first;
     markers[markers.length]=first;
+//first available route of first available point
     next={x: interPoints[i]["route"][0].x, y: interPoints[i]["route"][0].y};
     resArr[resArr.length-1][resArr[resArr.length-1].length]=next;
     markers[markers.length]=next;
+//find current point in intersection array to find its routes
     for (var n=0; n<interPoints.length; n++) {
             if (interPoints[n].x==next.x && interPoints[n].y==next.y) {
+//compare routes current point with used routes. if route is suitable, push it as next result array point
                 step: for (m=0; m<interPoints[n]["route"].length; m++) {
                     for (k=0; k<markers.length; k++) {
                         if (interPoints[n]["route"][m].x==markers[k].x && interPoints[n]["route"][m].y==markers[k].y) { continue step; }
@@ -399,5 +422,5 @@ function helpMeToBuildResArr (i,markers) {
 //----------------------------------------------------------
 //run block
 
-intersect();    
+intersect(examples["first"],examples["second"]);    
 
