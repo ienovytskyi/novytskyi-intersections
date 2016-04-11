@@ -192,15 +192,15 @@ function intersection (a1,b1,c2,d2,p) {
 //second line vertical, first line any
         else if (c2.x==d2.x) {
             if (k1==0) {yRes=a1.y;} if (k1!=0) {yRes=k1*(c2.x-a1.x)+a1.y;}
-            if (yRes>Math.min(c2.y,d2.y) && yRes<Math.max(c2.y,d2.y) && c2.x>=a1.x) {return 30;}        //WARNING to use >=
+            if (yRes>Math.min(c2.y,d2.y) && yRes<Math.max(c2.y,d2.y) && c2.x>=a1.x) {return 30;}
             if (yRes==Math.min(c2.y,d2.y) || yRes==Math.max(c2.y,d2.y)) {return 20;}
             if (yRes<Math.min(c2.y,d2.y) || yRes>Math.max(c2.y,d2.y) || c2.x<=a1.x) {return 10;}
         }
 //other
-        else {                  //k2!=inf && k1!=k2
+        else {
             xRes=(a1.y-k1*a1.x-n2)/(k2-k1);
             yRes=k1*((a1.y-k1*a1.x-n2)/(k2-k1))+a1.y;
-            if (xRes>c2.x && xRes<d2.x && xRes>=a1.x && yRes>Math.min(c2.y,d2.y) && yRes<Math.max(c2.y,d2.y)) {return 30;}      //WARNING to use >=
+            if (xRes>c2.x && xRes<d2.x && xRes>=a1.x && yRes>Math.min(c2.y,d2.y) && yRes<Math.max(c2.y,d2.y)) {return 30;}
             if ((xRes==c2.x || xRes==d2.x) && (yRes==Math.min(c2.y,d2.y) || yRes==Math.max(c2.y,d2.y))) {return 20;}
             if ((xRes<c2.x || xRes>d2.x) || xRes<=a1.x || (yRes<Math.min(c2.y,d2.y) || yRes>Math.max(c2.y,d2.y))) {return 10;}
         }  
