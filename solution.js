@@ -1,6 +1,6 @@
 //input data
 var examples = {
-        first: [
+    first: [
         { x: 60,  y: 60  },
         { x: 180, y: 0   },
         { x: 300, y: 60  },
@@ -63,6 +63,7 @@ function runPoints (a,b,p) {
             if (p==3 || p==4) {
                 if (c2.x<=d2.x) {var res=intersection(a1,k1,c2,d2,p);}
                 if (c2.x>d2.x) {var res=intersection(a1,k1,d2,c2,p);}
+                if (res==40) {index++; break;}
                 if (res==30) {index++;}
                 if (res==20) {k1-=0.1; j--; continue;}
                 if (res==10) {continue;}
@@ -116,10 +117,22 @@ function intersection (a1,b1,c2,d2,p) {
         if (Math.max(a1.y,b1.y)<Math.min(c2.y,d2.y) || Math.max(c2.y,d2.y)<Math.min(a1.y,b1.y)) {return 0;}
         if (Math.max(a1.y,b1.y)==Math.min(c2.y,d2.y)) {addInterPoints(a1.x,Math.max(a1.y,b1.y),p,a1,b1,c2,d2);}
         if (Math.max(c2.y,d2.y)==Math.min(a1.y,b1.y)) {addInterPoints(a1.x,Math.max(c2.y,d2.y),p,a1,b1,c2,d2);}
-        if (Math.min(a1.y,b1.y)<=Math.min(c2.y,d2.y)) {addInterPoints(a1.x,Math.min(a1.y,b1.y),p,a1,b1,c2,d2);}
-        if (Math.min(a1.y,b1.y)>Math.min(c2.y,d2.y)) {addInterPoints(a1.x,Math.min(c2.y,d2.y),p,a1,b1,c2,d2);}
-        if (Math.max(a1.y,b1.y)<=Math.max(c2.y,d2.y)) {addInterPoints(a1.x,Math.max(a1.y,b1.y),p,a1,b1,c2,d2);}
-        if (Math.max(a1.y,b1.y)>Math.max(c2.y,d2.y)) {addInterPoints(a1.x,Math.max(c2.y,d2.y),p,a1,b1,c2,d2);}
+        if (Math.min(a1.y,b1.y)>=Math.min(c2.y,d2.y) && Math.max(a1.y,b1.y)<=Math.max(c2.y,d2.y)) {
+            addInterPoints(a1.x,Math.min(a1.y,b1.y),p,a1,b1,c2,d2);
+            addInterPoints(a1.x,Math.max(a1.y,b1.y),p,a1,b1,c2,d2);
+        }
+        if (Math.min(a1.y,b1.y)<=Math.min(c2.y,d2.y) && Math.max(a1.y,b1.y)>=Math.max(c2.y,d2.y)) {
+            addInterPoints(a1.x,Math.min(c2.y,d2.y),p,a1,b1,c2,d2);
+            addInterPoints(a1.x,Math.max(c2.y,d2.y),p,a1,b1,c2,d2);
+        }
+        if (Math.min(a1.y,b1.y)>Math.min(c2.y,d2.y) && Math.min(a1.y,b1.y)<Math.max(c2.y,d2.y) && Math.max(c2.y,d2.y)<Math.max(a1.y,b1.y)) {
+            addInterPoints(a1.x,Math.min(a1.y,b1.y),p,a1,b1,c2,d2);
+            addInterPoints(a1.x,Math.max(c2.y,d2.y),p,a1,b1,c2,d2);
+        }
+        if (Math.min(a1.y,b1.y)<Math.min(c2.y,d2.y) && Math.max(a1.y,b1.y)>Math.min(c2.y,d2.y) && Math.max(c2.y,d2.y)>Math.max(a1.y,b1.y)) {
+            addInterPoints(a1.x,Math.max(a1.y,b1.y),p,a1,b1,c2,d2);
+            addInterPoints(a1.x,Math.min(c2.y,d2.y),p,a1,b1,c2,d2);
+        }
     }
 //superposed non vertical lines 
    if (k1==k2 && n1==n2 && k1!=Infinity && k2!=Infinity) {
@@ -128,10 +141,22 @@ function intersection (a1,b1,c2,d2,p) {
             if (b1.x<c2.x || d2.x<a1.x) {return 0;}
             if (d2.x==a1.x) {addInterPoints(d2.x,d2.y,p,a1,b1,c2,d2);} 
             if (b1.x==c2.x) {addInterPoints(b1.x,b1.y,p,a1,b1,c2,d2);}
-            if (a1.x<=c2.x) {addInterPoints(c2.x,c2.y,p,a1,b1,c2,d2);}
-                else {addInterPoints(a1.x,a1.y,p,a1,b1,c2,d2,p);}
-            if (b1.x<=d2.x) {addInterPoints(b1.x,b1.y,p,a1,b1,c2,d2);}
-                else {addInterPoints(d2.x,d2.y,p,a1,b1,c2,d2,p);}
+            if (a1.x>=c2.x && b1.x<=d2.x) {
+            addInterPoints(a1.x,a1.y,p,a1,b1,c2,d2);
+            addInterPoints(b1.x,b1.y,p,a1,b1,c2,d2);
+        }
+            if (a1.x<=c2.x && b1.x>=d2.x) {
+                addInterPoints(c2.x,c2.y,p,a1,b1,c2,d2);
+                addInterPoints(d2.x,d2.y,p,a1,b1,c2,d2);
+            }
+            if (a1.x<c2.x && b1.x>c2.x && b1.x<d2.x) {
+                addInterPoints(b1.x,b1.y,p,a1,b1,c2,d2);
+                addInterPoints(c2.x,c2.y,p,a1,b1,c2,d2);
+            }
+            if (c2.x<a1.x && d2.x>a1.x && d2.x<b1.x) {
+                addInterPoints(a1.x,a1.y,p,a1,b1,c2,d2);
+                addInterPoints(d2.x,d2.y,p,a1,b1,c2,d2);
+            }
         }
     } 
 //lines intersect. in any case we check if point is appropriative (belongs to line segments) and if it is push it to the array
@@ -182,6 +207,7 @@ function intersection (a1,b1,c2,d2,p) {
 
 //build line equation which passes one point with default angular coefficient set to 0 (can be changed in line k1-=0.1;) and look for intersection points. this point cant be vertex. line cant be vertical, because we dont set infinity angular coefficient
     if (p==3 || p==4) {
+        if ((a1.x==c2.x && a1.y==c2.y) || (a1.x==d2.x && a1.y==d2.y)) {return 40;}
 //first line not horizontal, second horizontal
         if (c2.y==d2.y && k1!=0) {
             xRes=(a1.y-k1*a1.x-n2)/(k2-k1);
@@ -333,7 +359,7 @@ function checkLineSegmentFS (point,route,firstSecond) {
         return 0;
 }
 
-//launch previous functions. route can stay unchanged, deleted or replaced on the correct one
+//launch previous functions. route can stay unchanged, be deleted or replaced on the correct one
 function makeGoodRoutes () {
     for (var n=0; n<interPoints.length; n++) {
         for (var m=0; m<interPoints[n]["route"].length; m++) {
@@ -344,6 +370,16 @@ function makeGoodRoutes () {
 //correct some existent route
                 interPoints[n]["route"][m].x=routeToMod.x; 
                 interPoints[n]["route"][m].y=routeToMod.y;
+            }
+        }
+    }
+//delete repeated routes
+    for (var n=0; n<interPoints.length; n++) {
+        label: for (var m=0; m<interPoints[n]["route"].length; m++) {
+            for (var k=0; k<interPoints[n]["route"].length; k++) {
+                if (k!=m && interPoints[n]["route"][k].x==interPoints[n]["route"][m].x && interPoints[n]["route"][k].y==interPoints[n]["route"][m].y) {
+                    interPoints[n]["route"].splice(k,1); m--; continue label;
+                }
             }
         }
     }
@@ -361,6 +397,10 @@ function intersect (first,second) {
     runPoints(second,second,2);
     runPoints(first,second,3);
     runPoints(second,first,3);
+//vertex superposition
+    if (interPoints.length==1) {
+        return resArr;
+    }
     makeGoodRoutes();
 //used routes array
     var markers = new Array();
@@ -376,9 +416,9 @@ function intersect (first,second) {
             }
                 helpMeToBuildResArr(i,markers);
         }
-//if there is less than 3 points in the result array, delete it. it is case of vertexes or sides superposition
+//if there is less than 3 points in the result array, delete it. it is case of sides superposition
         for (var l=0; l<resArr.length; l++) {
-            if (resArr[l].length<2) {
+            if (resArr[l].length<3) {
                 resArr.splice(l,1); 
                 l--;
             }
@@ -423,4 +463,3 @@ function helpMeToBuildResArr (i,markers) {
 //run block
 
 intersect(examples["first"],examples["second"]);    
-
