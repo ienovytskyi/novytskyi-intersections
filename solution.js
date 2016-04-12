@@ -30,9 +30,9 @@ var examples = {
 
 //intersection points array
 var interPoints = new Array();
-//first input array self-intersection points array
+//first input array with self-intersection points
 var selfInterPointsF = new Array();
-//second input array self-intersection points array
+//second input array with self-intersection points
 var selfInterPointsS = new Array();
 //result array
 var resArr = new Array();
@@ -40,7 +40,7 @@ var resArr = new Array();
 //first block
 //in the first block all the intersection and self-intersection points are looked for
 
-//a,b - input arrays, p - flag to write result in different arrays: p=0 - intersection, p=1 && p=2 - self-intersection, p=3 - check if any non intersection points (self-intersection, points of input arrays) are part of result intersection polygon
+//a,b - input arrays, p - flag to write result in different arrays: p=0 - intersection, p=1 && p=2 - self-intersection, p=3 - check if any non intersection points (self-intersection, points of input arrays) are part of result intersection polygon, p=4 - check if line segment belongs to intersection polygon
 //a1 - first point, first line; b1 - second point, first line; c2 - first point second line; d2 - second point second line
 function runPoints (a,b,p) {
     for (var i=0; i<a.length; i++) {
@@ -77,8 +77,16 @@ function runPoints (a,b,p) {
         if (p==3 && index%2==1) {addInterPoints(a[i].x,a[i].y,0,a[temp1-1],a[temp2+1],0,0);}
         else if ((p==3 || p==4) && index%2==0) {continue;}
     }
+//add input array elements to self interpoint arrays
+    if (p==1 || p==2) {
+        if (p==1) {var arrToPush=selfInterPointsF;} 
+        if (p==2) {var arrToPush=selfInterPointsS;}
+        for (var i=a.length-1; i>=0; i--) {
+            arrToPush.unshift(a[i]);
+        }
+    }
     return 50;  //any number for fucn to return if nothing to do
-} 
+}
 
 //finds intersection points
 //we build line segments from two continuous points of input array. we build equation of two lines that passes two points. looking for intersection point and check if it belongs to the line segment
@@ -97,13 +105,13 @@ function intersection (a1,b1,c2,d2,p) {
     }
 //in case of vertical line change angular coefficient (-infinity=infinity)
     if (c2.x == d2.x) {
-        var k2=Math.abs((d2.y-c2.y)/(d2.x-c2.x)); 
+        var k2=Math.abs((d2.y-c2.y)/(d2.x-c2.x));
         var n2=Math.abs((c2.y*d2.x-d2.y*c2.x)/(d2.x-c2.x));
     }
     else {
-        var k2=(d2.y-c2.y)/(d2.x-c2.x);   
+        var k2=(d2.y-c2.y)/(d2.x-c2.x);
         var n2=(c2.y*d2.x-d2.y*c2.x)/(d2.x-c2.x);
-    } 
+    }
 //parallel lines
     if (k1==k2 && n1!==n2) {
         return 0;
@@ -134,17 +142,17 @@ function intersection (a1,b1,c2,d2,p) {
             addInterPoints(a1.x,Math.min(c2.y,d2.y),p,a1,b1,c2,d2);
         }
     }
-//superposed non vertical lines 
-   if (k1==k2 && n1==n2 && k1!=Infinity && k2!=Infinity) {
+//superposed non vertical lines
+    if (k1==k2 && n1==n2 && k1!=Infinity && k2!=Infinity) {
         if (p==3 || p==4) {return 10;}
         else {
             if (b1.x<c2.x || d2.x<a1.x) {return 0;}
-            if (d2.x==a1.x) {addInterPoints(d2.x,d2.y,p,a1,b1,c2,d2);} 
+            if (d2.x==a1.x) {addInterPoints(d2.x,d2.y,p,a1,b1,c2,d2);}
             if (b1.x==c2.x) {addInterPoints(b1.x,b1.y,p,a1,b1,c2,d2);}
             if (a1.x>=c2.x && b1.x<=d2.x) {
-            addInterPoints(a1.x,a1.y,p,a1,b1,c2,d2);
-            addInterPoints(b1.x,b1.y,p,a1,b1,c2,d2);
-        }
+                addInterPoints(a1.x,a1.y,p,a1,b1,c2,d2);
+                addInterPoints(b1.x,b1.y,p,a1,b1,c2,d2);
+            }
             if (a1.x<=c2.x && b1.x>=d2.x) {
                 addInterPoints(c2.x,c2.y,p,a1,b1,c2,d2);
                 addInterPoints(d2.x,d2.y,p,a1,b1,c2,d2);
@@ -158,54 +166,54 @@ function intersection (a1,b1,c2,d2,p) {
                 addInterPoints(d2.x,d2.y,p,a1,b1,c2,d2);
             }
         }
-    } 
+    }
 //lines intersect. in any case we check if point is appropriative (belongs to line segments) and if it is push it to the array
     if (p!=3 && p!=4) {
-        
-    if (k1!==k2) {
-        var xRes=0;
-        var yRes=0;
+
+        if (k1!==k2) {
+            var xRes=0;
+            var yRes=0;
 //first line is horizontal, second line is non vertical
-        if (a1.y==b1.y && c2.x!=d2.x) {
-            xRes=(a1.y-n2)/k2;
-            if (a1.y>=Math.min(c2.y,d2.y) && a1.y<=Math.max(c2.y,d2.y) && xRes>=c2.x && xRes<=d2.x && xRes>=a1.x && xRes<=b1.x) {
-                addInterPoints(xRes,a1.y,p,a1,b1,c2,d2);
+            if (a1.y==b1.y && c2.x!=d2.x) {
+                xRes=(a1.y-n2)/k2;
+                if (a1.y>=Math.min(c2.y,d2.y) && a1.y<=Math.max(c2.y,d2.y) && xRes>=c2.x && xRes<=d2.x && xRes>=a1.x && xRes<=b1.x) {
+                    addInterPoints(xRes,a1.y,p,a1,b1,c2,d2);
+                }
             }
-        }
 //second line is horizontal, first line is non vertical
-        else if (c2.y==d2.y && a1.x!=b1.x) {
-            xRes=(c2.y-n1)/k1;
-            if (c2.y>=Math.min(a1.y,b1.y) && c2.y<=Math.max(a1.y,b1.y) && xRes>=c2.x && xRes<=d2.x && xRes>=a1.x && xRes<=b1.x) {
-                addInterPoints(xRes,c2.y,p,a1,b1,c2,d2);
+            else if (c2.y==d2.y && a1.x!=b1.x) {
+                xRes=(c2.y-n1)/k1;
+                if (c2.y>=Math.min(a1.y,b1.y) && c2.y<=Math.max(a1.y,b1.y) && xRes>=c2.x && xRes<=d2.x && xRes>=a1.x && xRes<=b1.x) {
+                    addInterPoints(xRes,c2.y,p,a1,b1,c2,d2);
+                }
             }
-        }
 //first line is vertical, second line any
-        else if (a1.x==b1.x) {
-            if (c2.y==d2.y) {yRes=c2.y;} if (c2.y!=d2.y) {yRes=k2*a1.x+n2;}
-            if (a1.x>=c2.x && a1.x<=d2.x && yRes>=Math.min(c2.y,d2.y) && yRes<=Math.max(c2.y,d2.y) && yRes>=Math.min(a1.y,b1.y) && yRes<=Math.max(a1.y,b1.y)) {
-                addInterPoints(a1.x,yRes,p,a1,b1,c2,d2);
+            else if (a1.x==b1.x) {
+                if (c2.y==d2.y) {yRes=c2.y;} if (c2.y!=d2.y) {yRes=k2*a1.x+n2;}
+                if (a1.x>=c2.x && a1.x<=d2.x && yRes>=Math.min(c2.y,d2.y) && yRes<=Math.max(c2.y,d2.y) && yRes>=Math.min(a1.y,b1.y) && yRes<=Math.max(a1.y,b1.y)) {
+                    addInterPoints(a1.x,yRes,p,a1,b1,c2,d2);
+                }
             }
-        }
 //second line is vertical, first line any
-        else if (c2.x==d2.x) {
-            if (a1.y==b1.y) {yRes=a1.y;} if (a1.y!=b1.y) {yRes=k1*c2.x+n1;}
-            if (c2.x>=a1.x && c2.x<=b1.x && yRes>=Math.min(c2.y,d2.y) && yRes<=Math.max(c2.y,d2.y) && yRes>=Math.min(a1.y,b1.y) && yRes<=Math.max(a1.y,b1.y)) {
-                addInterPoints(c2.x,yRes,p,a1,b1,c2,d2);
+            else if (c2.x==d2.x) {
+                if (a1.y==b1.y) {yRes=a1.y;} if (a1.y!=b1.y) {yRes=k1*c2.x+n1;}
+                if (c2.x>=a1.x && c2.x<=b1.x && yRes>=Math.min(c2.y,d2.y) && yRes<=Math.max(c2.y,d2.y) && yRes>=Math.min(a1.y,b1.y) && yRes<=Math.max(a1.y,b1.y)) {
+                    addInterPoints(c2.x,yRes,p,a1,b1,c2,d2);
+                }
             }
-        }
 //other lines
-      else {
-            xRes=(((c2.y*d2.x-c2.x*d2.y)/(d2.x-c2.x)-(a1.y*b1.x-a1.x*b1.y)/(b1.x-a1.x)) / ((b1.y-a1.y)/(b1.x-a1.x)-(d2.y-c2.y)/(d2.x-c2.x)));
-            yRes=(k1*(((c2.y*d2.x-c2.x*d2.y)/(d2.x-c2.x)-(a1.y*b1.x-a1.x*b1.y)/(b1.x-a1.x))/((b1.y-a1.y)/(b1.x-a1.x)-(d2.y-c2.y)/(d2.x-c2.x)))+n1);
-            if (xRes>=a1.x && xRes>=c2.x && xRes<=b1.x && xRes<=d2.x && yRes>=Math.min(a1.y,b1.y) && yRes<=Math.max(a1.y,b1.y) && yRes>=Math.min(c2.y,d2.y) && yRes<=Math.max(c2.y,d2.y)) {
-                addInterPoints(xRes,yRes,p,a1,b1,c2,d2);    
+            else {
+                xRes=(((c2.y*d2.x-c2.x*d2.y)/(d2.x-c2.x)-(a1.y*b1.x-a1.x*b1.y)/(b1.x-a1.x)) / ((b1.y-a1.y)/(b1.x-a1.x)-(d2.y-c2.y)/(d2.x-c2.x)));
+                yRes=(k1*(((c2.y*d2.x-c2.x*d2.y)/(d2.x-c2.x)-(a1.y*b1.x-a1.x*b1.y)/(b1.x-a1.x))/((b1.y-a1.y)/(b1.x-a1.x)-(d2.y-c2.y)/(d2.x-c2.x)))+n1);
+                if (xRes>=a1.x && xRes>=c2.x && xRes<=b1.x && xRes<=d2.x && yRes>=Math.min(a1.y,b1.y) && yRes<=Math.max(a1.y,b1.y) && yRes>=Math.min(c2.y,d2.y) && yRes<=Math.max(c2.y,d2.y)) {
+                    addInterPoints(xRes,yRes,p,a1,b1,c2,d2);
+                }
             }
         }
-    }
-    
+
     } //end if (p!=3)
 
-//build line equation which passes one point with default angular coefficient set to 0 (can be changed in line k1-=0.1;) and look for intersection points. this point cant be vertex. line cant be vertical, because we dont set infinity angular coefficient
+//build line equation which passes one point with default angular coefficient set to 0 (can be changed in line k1-=0.1;) and look for intersection points. this point cant be vertex and self intersection point. line cant be vertical, because we dont set infinity angular coefficient
     if (p==3 || p==4) {
         if ((a1.x==c2.x && a1.y==c2.y) || (a1.x==d2.x && a1.y==d2.y)) {return 40;}
 //first line not horizontal, second horizontal
@@ -229,7 +237,7 @@ function intersection (a1,b1,c2,d2,p) {
             if (xRes>c2.x && xRes<d2.x && xRes>=a1.x && yRes>Math.min(c2.y,d2.y) && yRes<Math.max(c2.y,d2.y)) {return 30;}
             if ((xRes==c2.x || xRes==d2.x) && (yRes==Math.min(c2.y,d2.y) || yRes==Math.max(c2.y,d2.y))) {return 20;}
             if ((xRes<c2.x || xRes>d2.x) || xRes<=a1.x || (yRes<Math.min(c2.y,d2.y) || yRes>Math.max(c2.y,d2.y))) {return 10;}
-        }  
+        }
     }
 }   //function end
 
@@ -246,27 +254,27 @@ function addPoints (a,xx,yy,a1,b1,c2,d2) {
     if (a.length!=0) {
         for (var i=0; i<a.length; i++) {
             if (a[i].x==xx && a[i].y==yy) {
-                    if (check(a[i],a1)==1) {a[i]["route"][a[i]["route"].length]={x: a1.x, y: a1.y};}
-                    if (check(a[i],b1)==1) {a[i]["route"][a[i]["route"].length]={x: b1.x, y: b1.y};}
-                    if (check(a[i],c2)==1) {a[i]["route"][a[i]["route"].length]={x: c2.x, y: c2.y};}
-                    if (check(a[i],d2)==1) {a[i]["route"][a[i]["route"].length]={x: d2.x, y: d2.y};}
+                if (check(a[i],a1)==1) {a[i]["route"][a[i]["route"].length]={x: a1.x, y: a1.y};}
+                if (check(a[i],b1)==1) {a[i]["route"][a[i]["route"].length]={x: b1.x, y: b1.y};}
+                if (check(a[i],c2)==1) {a[i]["route"][a[i]["route"].length]={x: c2.x, y: c2.y};}
+                if (check(a[i],d2)==1) {a[i]["route"][a[i]["route"].length]={x: d2.x, y: d2.y};}
                 return 0;
             }
         }
     }
 //add new point with routes
-        a[a.length]={x: xx, y: yy, route: []};
-        if ((a1.x!=xx || a1.y!=yy) && a1!=0) {a[a.length-1]["route"][a[a.length-1]["route"].length]={x: a1.x, y: a1.y};}
-        if ((b1.x!=xx || b1.y!=yy) && b1!=0) {a[a.length-1]["route"][a[a.length-1]["route"].length]={x: b1.x, y: b1.y};}
-        if ((c2.x!=xx || c2.y!=yy) && c2!=0) {a[a.length-1]["route"][a[a.length-1]["route"].length]={x: c2.x, y: c2.y};}
-        if ((d2.x!=xx || d2.y!=yy) && d2!=0) {a[a.length-1]["route"][a[a.length-1]["route"].length]={x: d2.x, y: d2.y};}
+    a[a.length]={x: xx, y: yy, route: []};
+    if ((a1.x!=xx || a1.y!=yy) && a1!=0) {a[a.length-1]["route"][a[a.length-1]["route"].length]={x: a1.x, y: a1.y};}
+    if ((b1.x!=xx || b1.y!=yy) && b1!=0) {a[a.length-1]["route"][a[a.length-1]["route"].length]={x: b1.x, y: b1.y};}
+    if ((c2.x!=xx || c2.y!=yy) && c2!=0) {a[a.length-1]["route"][a[a.length-1]["route"].length]={x: c2.x, y: c2.y};}
+    if ((d2.x!=xx || d2.y!=yy) && d2!=0) {a[a.length-1]["route"][a[a.length-1]["route"].length]={x: d2.x, y: d2.y};}
 }
 
 //looking for existent route. dont add if exist
 function check (a,b) {
     if (b!=0) {
         for (var j=0; j<a["route"].length; j++) {
-                if ((b.x==a["route"][j].x && b.y==a["route"][j].y) || (b.x==a.x && b.y==a.y)) {return 0;}
+            if ((b.x==a["route"][j].x && b.y==a["route"][j].y) || (b.x==a.x && b.y==a.y)) {return 0;}
         }
         return 1;
     } else {return 0;}
@@ -287,11 +295,11 @@ function checkRoute (point,route) {
         if (route.x==interPoints[i].x && route.y==interPoints[i].y) {temp1=1; temp=interPoints[i];}
 //if there is other suitable point between our current point and the route
         if (point.x==route.x && (interPoints[i].x==point.x && interPoints[i].y>Math.min(point.y,route.y) && interPoints[i].y<Math.max(point.y,route.y))) {
-            temp2=1; 
+            temp2=1;
             temp4[temp4.length]=interPoints[i];
         }
         else if (point.y==route.y && (interPoints[i].y==point.y && interPoints[i].x>Math.min(point.x,route.x) && interPoints[i].x<Math.max(point.x,route.x))) {
-            temp2=1; 
+            temp2=1;
             temp4[temp4.length]=interPoints[i];
         }
         else if ((interPoints[i].x-point.x)/(route.x-point.x)==(interPoints[i].y-point.y)/(route.y-point.y) && interPoints[i].x!=point.x && interPoints[i].y!=point.y && interPoints[i].x>Math.min(point.x,route.x) && interPoints[i].x<Math.max(point.x,route.x) && interPoints[i].y>Math.min(point.y,route.y) && interPoints[i].y<Math.max(point.y,route.y)) {
@@ -302,7 +310,7 @@ function checkRoute (point,route) {
 //set the nearest sutable point as new route
     if (temp2!=0) {
         temp=temp4[0];
-    //choose nearest point
+        //choose nearest point
         for (var i=0; i<temp4.length; i++) {
             if (Math.abs(point.x-temp4[i].x)<=Math.abs(point.x-temp.x) && Math.abs(point.y-temp4[i].y)<=Math.abs(point.y-temp.y)) {temp=temp4[i];}
         }
@@ -311,52 +319,52 @@ function checkRoute (point,route) {
     if (temp1==1 || temp2==1) {
         if (checkLineSegment(point,temp,examples["first"],examples["second"])==30) {return temp;}
         else {return 100;}
-    }   
+    }
 }
 
 //if the line segment current_point-suitable_route completely belongs to the intesection polygon new route can be set
 function checkLineSegment (point,route,first,second) {
-        if (checkLineSegmentFS(point,route,first)==1 || checkLineSegmentFS(point,route,second)==1) {return 30;}
-        if (checkLineSegmentFS(point,route,first)!=1 && checkLineSegmentFS(point,route,second)!=1) {return 10;}
+    if (checkLineSegmentFS(point,route,first)==1 || checkLineSegmentFS(point,route,second)==1) {return 30;}
+    if (checkLineSegmentFS(point,route,first)!=1 && checkLineSegmentFS(point,route,second)!=1) {return 10;}
 }
 
 //check if the line segment current_point-suitable_route completely belongs to the intesection polygon. if the middle of the line segment belongs, then the whole line segment belongs to polygon
 function checkLineSegmentFS (point,route,firstSecond) {
 //if we identified that point belongs to the first polygon by default, check if it belongs to the second one. and vice versa.
-        if (firstSecond==examples["first"]) {var mlsp=examples["second"];}
-        if (firstSecond==examples["second"]) {var mlsp=examples["first"];}
-        for (var i=0; i<firstSecond.length; i++) {
-            var a1=firstSecond[i];
-            var b1=firstSecond[(i+1)%(firstSecond.length)];
+    if (firstSecond==examples["first"]) {var mlsp=selfInterPointsS;}
+    if (firstSecond==examples["second"]) {var mlsp=selfInterPointsF;}
+    for (var i=0; i<firstSecond.length; i++) {
+        var a1=firstSecond[i];
+        var b1=firstSecond[(i+1)%(firstSecond.length)];
 //superposed vertical line segments
-            if ( point.x==route.x && point.x==a1.x && point.x==b1.x && (Math.min(point.y,route.y)>=Math.min(a1.y,b1.y) && Math.max(point.y,route.y)<=Math.max(a1.y,b1.y)) ) {
-                for (var j=0; j<mlsp.length; j++) {
-                        var a2=mlsp[j];
-                        var b2=mlsp[(j+1)%(mlsp.length)];
-                        if (((Math.min(a2.x,b2.x)==Math.min(point.x,route.x) && Math.min(a2.y,b2.y)==Math.min(point.y,route.y)) || (Math.max(a2.x,b2.x)==Math.max(point.x,route.x) && Math.max(a2.y,b2.y)==Math.max(point.y,route.y)) ) && point.x==a2.x && point.x==b2.x && Math.min(point.y,route.y)>=Math.min(a2.y,b2.y) && Math.max(point.y,route.y)<=Math.max(a2.y,b2.y)) {return 1;}
-                }
-                if ( (runPoints([{ x: point.x, y: Math.min(point.y,route.y)+(Math.max(point.y,route.y)-Math.min(point.y,route.y))/2 }],mlsp,4))==1 ) {return 1;}
+        if ( point.x==route.x && point.x==a1.x && point.x==b1.x && (Math.min(point.y,route.y)>=Math.min(a1.y,b1.y) && Math.max(point.y,route.y)<=Math.max(a1.y,b1.y)) ) {
+            for (var j=0; j<mlsp.length; j++) {
+                var a2=mlsp[j];
+                var b2=mlsp[(j+1)%(mlsp.length)];
+                if (((Math.min(a2.x,b2.x)==Math.min(point.x,route.x) && Math.min(a2.y,b2.y)==Math.min(point.y,route.y)) || (Math.max(a2.x,b2.x)==Math.max(point.x,route.x) && Math.max(a2.y,b2.y)==Math.max(point.y,route.y)) ) && point.x==a2.x && point.x==b2.x && Math.min(point.y,route.y)>=Math.min(a2.y,b2.y) && Math.max(point.y,route.y)<=Math.max(a2.y,b2.y)) {return 1;}
             }
-//superposed horizontal line segments
-            else if ( point.y==route.y && point.y==a1.y && point.y==b1.y && (Math.min(point.x,route.x)>=Math.min(a1.x,b1.x) && Math.max(point.x,route.x)<=Math.max(a1.x,b1.x)) ) {
-                for (var j=0; j<mlsp.length; j++) {
-                        var a2=mlsp[j];
-                        var b2=mlsp[(j+1)%(mlsp.length)];
-                        if (((Math.min(a2.x,b2.x)==Math.min(point.x,route.x) && Math.min(a2.y,b2.y)==Math.min(point.y,route.y)) || (Math.max(a2.x,b2.x)==Math.max(point.x,route.x) && Math.max(a2.y,b2.y)==Math.max(point.y,route.y)) ) && point.y==a2.y && point.y==b2.y && Math.min(point.x,route.x)>=Math.min(a2.x,b2.x) && Math.max(point.x,route.x)<=Math.max(a2.x,b2.x)) {return 1;}
-                }
-                if ((runPoints([{ x: Math.min(point.x,route.x)+(Math.max(point.x,route.x)-Math.min(point.x,route.x))/2, y: point.y }],mlsp,4))==1) {return 1;}
-            }
-//other
-            else if ((point.x!=route.x && point.y!=route.y) && (point.x-a1.x)/(b1.x-a1.x)==(point.y-a1.y)/(b1.y-a1.y) && (route.x-a1.x)/(b1.x-a1.x)==(route.y-a1.y)/(b1.y-a1.y) ) {
-                for (var j=0; j<mlsp.length; j++) {
-                        var a2=mlsp[j];
-                        var b2=mlsp[(j+1)%(mlsp.length)];
-                        if (((Math.min(a2.x,b2.x)==Math.min(point.x,route.x) && Math.min(a2.y,b2.y)==Math.min(point.y,route.y)) || (Math.max(a2.x,b2.x)==Math.max(point.x,route.x) && Math.max(a2.y,b2.y)==Math.max(point.y,route.y)) ) && Math.min(point.x,route.x)>=Math.min(a2.x,b2.x) && Math.max(point.x,route.x)<=Math.max(a2.x,b2.x) && Math.min(point.y,route.y)>=Math.min(a2.y,b2.y) && Math.max(point.y,route.y)<=Math.max(a2.y,b2.y) ) {return 1;}
-                }
-                if ((runPoints([{ x: Math.min(point.x,route.x)+(Math.max(point.x,route.x)-Math.min(point.x,route.x))/2, y: ((Math.min(point.x,route.x)+(Math.max(point.x,route.x)-Math.min(point.x,route.x))/2)-point.x)*(route.y-point.y)/(route.x-point.x)+point.y }],mlsp,4))==1 ) {return 1;}
-            }
+            if ( (runPoints([{ x: point.x, y: Math.min(point.y,route.y)+(Math.max(point.y,route.y)-Math.min(point.y,route.y))/2 }],mlsp,4))==1 ) {return 1;}
         }
-        return 0;
+//superposed horizontal line segments
+        else if ( point.y==route.y && point.y==a1.y && point.y==b1.y && (Math.min(point.x,route.x)>=Math.min(a1.x,b1.x) && Math.max(point.x,route.x)<=Math.max(a1.x,b1.x)) ) {
+            for (var j=0; j<mlsp.length; j++) {
+                var a2=mlsp[j];
+                var b2=mlsp[(j+1)%(mlsp.length)];
+                if (((Math.min(a2.x,b2.x)==Math.min(point.x,route.x) && Math.min(a2.y,b2.y)==Math.min(point.y,route.y)) || (Math.max(a2.x,b2.x)==Math.max(point.x,route.x) && Math.max(a2.y,b2.y)==Math.max(point.y,route.y)) ) && point.y==a2.y && point.y==b2.y && Math.min(point.x,route.x)>=Math.min(a2.x,b2.x) && Math.max(point.x,route.x)<=Math.max(a2.x,b2.x)) {return 1;}
+            }
+            if ((runPoints([{ x: Math.min(point.x,route.x)+(Math.max(point.x,route.x)-Math.min(point.x,route.x))/2, y: point.y }],mlsp,4))==1) {return 1;}
+        }
+//other
+        else if ((point.x!=route.x && point.y!=route.y) && (point.x-a1.x)/(b1.x-a1.x)==(point.y-a1.y)/(b1.y-a1.y) && (route.x-a1.x)/(b1.x-a1.x)==(route.y-a1.y)/(b1.y-a1.y) ) {
+            for (var j=0; j<mlsp.length; j++) {
+                var a2=mlsp[j];
+                var b2=mlsp[(j+1)%(mlsp.length)];
+                if (((Math.min(a2.x,b2.x)==Math.min(point.x,route.x) && Math.min(a2.y,b2.y)==Math.min(point.y,route.y)) || (Math.max(a2.x,b2.x)==Math.max(point.x,route.x) && Math.max(a2.y,b2.y)==Math.max(point.y,route.y)) ) && Math.min(point.x,route.x)>=Math.min(a2.x,b2.x) && Math.max(point.x,route.x)<=Math.max(a2.x,b2.x) && Math.min(point.y,route.y)>=Math.min(a2.y,b2.y) && Math.max(point.y,route.y)<=Math.max(a2.y,b2.y) ) {return 1;}
+            }
+            if ((runPoints([{ x: Math.min(point.x,route.x)+(Math.max(point.x,route.x)-Math.min(point.x,route.x))/2, y: ((Math.min(point.x,route.x)+(Math.max(point.x,route.x)-Math.min(point.x,route.x))/2)-point.x)*(route.y-point.y)/(route.x-point.x)+point.y }],mlsp,4))==1 ) {return 1;}
+        }
+    }
+    return 0;
 }
 
 //launch previous functions. route can stay unchanged, be deleted or replaced on the correct one
@@ -368,7 +376,7 @@ function makeGoodRoutes () {
             if (routeToMod==100) {interPoints[n]["route"].splice(m,1); m--;}
             else {
 //correct some existent route
-                interPoints[n]["route"][m].x=routeToMod.x; 
+                interPoints[n]["route"][m].x=routeToMod.x;
                 interPoints[n]["route"][m].y=routeToMod.y;
             }
         }
@@ -389,14 +397,16 @@ function makeGoodRoutes () {
 //-------------------------------------------------------
 //third block
 
-//take first point from intesection array. take first route. these are first and second points of the result array. then we look for available route in second point. choose the first one available. this is the third point. and so on till available routes end. if there are available points in intersection array, we create new result array and repeat 
+//take first point from intesection array. take first route. these are first and second points of the result array. then we look for available route in second point. choose the first one available. this is the third point. and so on till available routes end. if there are available points in intersection array, we create new result array and repeat
 function intersect (first,second) {
 //run previous code
     runPoints(first,second,0);
     runPoints(first,first,1);
     runPoints(second,second,2);
-    runPoints(first,second,3);
-    runPoints(second,first,3);
+    runPoints(first,selfInterPointsS,3);
+    runPoints(second,selfInterPointsF,3);
+    //runPoints(first,second,3);
+    //runPoints(second,first,3);
 //vertex superposition
     if (interPoints.length==1) {
         return resArr;
@@ -408,22 +418,22 @@ function intersect (first,second) {
 //push first and second result points
     helpMeToBuildResArr(0,markers);
 //repeat for all intersection array
-        step: for (var i=0; i<interPoints.length; i++) {
-            for (var j=0; j<markers.length; j++) {
-                if (interPoints[i].x==markers[j].x && interPoints[i].y==markers[j].y) {
-                    continue step;
-                }
+    step: for (var i=0; i<interPoints.length; i++) {
+        for (var j=0; j<markers.length; j++) {
+            if (interPoints[i].x==markers[j].x && interPoints[i].y==markers[j].y) {
+                continue step;
             }
-                helpMeToBuildResArr(i,markers);
         }
+        helpMeToBuildResArr(i,markers);
+    }
 //if there is less than 3 points in the result array, delete it. it is case of sides superposition
-        for (var l=0; l<resArr.length; l++) {
-            if (resArr[l].length<3) {
-                resArr.splice(l,1); 
-                l--;
-            }
+    for (var l=0; l<resArr.length; l++) {
+        if (resArr[l].length<3) {
+            resArr.splice(l,1);
+            l--;
         }
-return resArr;
+    }
+    return resArr;
 }
 
 //find and push points
@@ -443,18 +453,18 @@ function helpMeToBuildResArr (i,markers) {
     markers[markers.length]=next;
 //find current point in intersection array to find its routes
     for (var n=0; n<interPoints.length; n++) {
-            if (interPoints[n].x==next.x && interPoints[n].y==next.y) {
+        if (interPoints[n].x==next.x && interPoints[n].y==next.y) {
 //compare routes current point with used routes. if route is suitable, push it as next result array point
-                step: for (m=0; m<interPoints[n]["route"].length; m++) {
-                    for (k=0; k<markers.length; k++) {
-                        if (interPoints[n]["route"][m].x==markers[k].x && interPoints[n]["route"][m].y==markers[k].y) { continue step; }
-                    }
-                    next={x: interPoints[n]["route"][m].x, y: interPoints[n]["route"][m].y };
-                    resArr[resArr.length-1][resArr[resArr.length-1].length]=next;
-                    markers[markers.length]=next;
-                    n=0;
+            step: for (m=0; m<interPoints[n]["route"].length; m++) {
+                for (k=0; k<markers.length; k++) {
+                    if (interPoints[n]["route"][m].x==markers[k].x && interPoints[n]["route"][m].y==markers[k].y) { continue step; }
                 }
+                next={x: interPoints[n]["route"][m].x, y: interPoints[n]["route"][m].y };
+                resArr[resArr.length-1][resArr[resArr.length-1].length]=next;
+                markers[markers.length]=next;
+                n=0;
             }
+        }
     }
 }
 
@@ -462,4 +472,4 @@ function helpMeToBuildResArr (i,markers) {
 //----------------------------------------------------------
 //run block
 
-intersect(examples["first"],examples["second"]);    
+intersect(examples["first"],examples["second"]);
