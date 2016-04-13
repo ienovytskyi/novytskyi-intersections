@@ -397,6 +397,18 @@ function makeGoodRoutes () {
 //-------------------------------------------------------
 //third block
 
+//compute a simple intersection polygon (without self intersection points) area
+function area (i) {
+    var sum=0;
+    for (var j=0; j<resArr[i].length; j++) {
+        if (j==resArr[i].length-1) {var x1=resArr[i][0].x; var y1=resArr[i][0].y;}
+        else {var x1=resArr[i][j+1].x; var y1=resArr[i][j+1].y;}
+        sum=sum+((x1-resArr[i][j].x)*(resArr[i][j].y+y1));     
+    }
+    sum=Math.abs(sum)*0.5;
+    return sum;
+}
+
 //take first point from intesection array. take first route. these are first and second points of the result array. then we look for available route in second point. choose the first one available. this is the third point. and so on till available routes end. if there are available points in intersection array, we create new result array and repeat
 function intersect (first,second) {
 //run previous code
@@ -405,8 +417,6 @@ function intersect (first,second) {
     runPoints(second,second,2);
     runPoints(first,selfInterPointsS,3);
     runPoints(second,selfInterPointsF,3);
-    //runPoints(first,second,3);
-    //runPoints(second,first,3);
 //vertex superposition
     if (interPoints.length==1) {
         return resArr;
@@ -426,17 +436,18 @@ function intersect (first,second) {
         }
         helpMeToBuildResArr(i,markers);
     }
-//if there is less than 3 points in the result array, delete it. it is case of sides superposition
-    for (var l=0; l<resArr.length; l++) {
-        if (resArr[l].length<3) {
-            resArr.splice(l,1);
-            l--;
+    for ()
+//if there is less than 3 points in the result array, delete it. it is case of sides superposition. if area of simple intersection polygon is less than 0.0001, delete it
+    for (var i=0; i<resArr.length; i++) {
+        if (resArr[i].length<3 || area(i)<0.0001) {
+            resArr.splice(i,1);
+            i--;
         }
     }
     return resArr;
 }
 
-//find and push points
+//build the correct points sequence in result array(s)
 function helpMeToBuildResArr (i,markers) {
 //first point in new result array
     var first=0;
