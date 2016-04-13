@@ -77,14 +77,6 @@ function runPoints (a,b,p) {
         if (p==3 && index%2==1) {addInterPoints(a[i].x,a[i].y,0,a[temp1-1],a[temp2+1],0,0);}
         else if ((p==3 || p==4) && index%2==0) {continue;}
     }
-//add input array elements to self interpoint arrays
-    if (p==1 || p==2) {
-        if (p==1) {var arrToPush=selfInterPointsF;} 
-        if (p==2) {var arrToPush=selfInterPointsS;}
-        for (var i=a.length-1; i>=0; i--) {
-            arrToPush.unshift(a[i]);
-        }
-    }
     return 50;  //any number for fucn to return if nothing to do
 }
 
@@ -211,7 +203,7 @@ function intersection (a1,b1,c2,d2,p) {
             }
         }
 
-    } //end if (p!=3)
+    } //end if (p!=3...)
 
 //build line equation which passes one point with default angular coefficient set to 0 (can be changed in line k1-=0.1;) and look for intersection points. this point cant be vertex and self intersection point. line cant be vertical, because we dont set infinity angular coefficient
     if (p==3 || p==4) {
@@ -220,14 +212,14 @@ function intersection (a1,b1,c2,d2,p) {
         if (c2.y==d2.y && k1!=0) {
             xRes=(a1.y-k1*a1.x-n2)/(k2-k1);
             if (xRes>c2.x && xRes<d2.x && xRes>=a1.x) {return 30;}
-            if (xRes==c2.x || xRes==d2.x) {return 20;}
+            if (xRes==c2.x || xRes==d2.x || chIntersWSIP(xRes,c2.y)==0) {return 20;}
             if (xRes<c2.x || xRes>d2.x || xRes<=a1.x) {return 10;}
         }
 //second line vertical, first line any
         else if (c2.x==d2.x) {
             if (k1==0) {yRes=a1.y;} if (k1!=0) {yRes=k1*(c2.x-a1.x)+a1.y;}
             if (yRes>Math.min(c2.y,d2.y) && yRes<Math.max(c2.y,d2.y) && c2.x>=a1.x) {return 30;}
-            if (yRes==Math.min(c2.y,d2.y) || yRes==Math.max(c2.y,d2.y)) {return 20;}
+            if (yRes==Math.min(c2.y,d2.y) || yRes==Math.max(c2.y,d2.y) || chIntersWSIP(c2.x,yRes)==0) {return 20;}
             if (yRes<Math.min(c2.y,d2.y) || yRes>Math.max(c2.y,d2.y) || c2.x<=a1.x) {return 10;}
         }
 //other
@@ -235,11 +227,29 @@ function intersection (a1,b1,c2,d2,p) {
             xRes=(a1.y-k1*a1.x-n2)/(k2-k1);
             yRes=k1*((a1.y-k1*a1.x-n2)/(k2-k1))+a1.y;
             if (xRes>c2.x && xRes<d2.x && xRes>=a1.x && yRes>Math.min(c2.y,d2.y) && yRes<Math.max(c2.y,d2.y)) {return 30;}
-            if ((xRes==c2.x || xRes==d2.x) && (yRes==Math.min(c2.y,d2.y) || yRes==Math.max(c2.y,d2.y))) {return 20;}
+            if (((xRes==c2.x || xRes==d2.x) && (yRes==Math.min(c2.y,d2.y) || yRes==Math.max(c2.y,d2.y))) || chIntersWSIP(xRes,c2.y)==0) {return 20;}
             if ((xRes<c2.x || xRes>d2.x) || xRes<=a1.x || (yRes<Math.min(c2.y,d2.y) || yRes>Math.max(c2.y,d2.y))) {return 10;}
         }
     }
 }   //function end
+
+//check intersection of checkline from previous function (cases p=3,p=4) with self intersection points
+function chIntersWSIP (x,y) {
+    //console.log(selfInterPointsS);
+    //if (p==5) {var ar=selfInterPointsF;}
+    //if (p==6) {var ar=selfInterPointsS;}
+    //if (p!=5 && p!=6) {return 0;}
+    if (selfInterPointsF.length!=0) {
+        for (var i=0; i<selfInterPointsF.length; i++) {
+            if (x==selfInterPointsF[i].x && y==selfInterPointsF[i].y) {return 0;}
+        }
+    }
+    if (selfInterPointsS.length!=0) {
+        for (var i=0; i<selfInterPointsS.length; i++) {
+            if (x==selfInterPointsS[i].x && y==selfInterPointsS[i].y) {return 0;}
+        }
+    }
+}
 
 //adds found point to array. also we add vertexes of line segments, which intersection creates this point (build smth like a route map to see which next point we can get directly from this one). a1,b1-first linesegment; c2,d2-second line segment
 function addInterPoints (xx,yy,p,a1,b1,c2,d2) {
@@ -331,8 +341,8 @@ function checkLineSegment (point,route,first,second) {
 //check if the line segment current_point-suitable_route completely belongs to the intesection polygon. if the middle of the line segment belongs, then the whole line segment belongs to polygon
 function checkLineSegmentFS (point,route,firstSecond) {
 //if we identified that point belongs to the first polygon by default, check if it belongs to the second one. and vice versa.
-    if (firstSecond==examples["first"]) {var mlsp=selfInterPointsS;}
-    if (firstSecond==examples["second"]) {var mlsp=selfInterPointsF;}
+    if (firstSecond==examples["first"]) {var mlsp=examples["second"];}
+    if (firstSecond==examples["second"]) {var mlsp=examples["first"];}
     for (var i=0; i<firstSecond.length; i++) {
         var a1=firstSecond[i];
         var b1=firstSecond[(i+1)%(firstSecond.length)];
@@ -415,8 +425,8 @@ function intersect (first,second) {
     runPoints(first,second,0);
     runPoints(first,first,1);
     runPoints(second,second,2);
-    runPoints(first,selfInterPointsS,3);
-    runPoints(second,selfInterPointsF,3);
+    runPoints(first,second,3);
+    runPoints(second,first,3);
 //vertex superposition
     if (interPoints.length==1) {
         return resArr;
@@ -436,7 +446,6 @@ function intersect (first,second) {
         }
         helpMeToBuildResArr(i,markers);
     }
-    for ()
 //if there is less than 3 points in the result array, delete it. it is case of sides superposition. if area of simple intersection polygon is less than 0.0001, delete it
     for (var i=0; i<resArr.length; i++) {
         if (resArr[i].length<3 || area(i)<0.0001) {
@@ -447,7 +456,7 @@ function intersect (first,second) {
     return resArr;
 }
 
-//build the correct points sequence in result array(s)
+//build the correct points sequence in result array(s
 function helpMeToBuildResArr (i,markers) {
 //first point in new result array
     var first=0;
